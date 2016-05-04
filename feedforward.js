@@ -24,7 +24,7 @@ var L1 = math.matrix([]);
 var L2 = math.matrix([]);
 
 for(var i = 0; i < 10000; i++){
-	L0 = math.clone(X);
+	L0 = X;
 	L1 = sgm(math.multiply(L0,W0));
     L2 = sgm(math.multiply(L1,W1));
 	var L2_error = math.subtract(Y, L2);
