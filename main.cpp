@@ -28,15 +28,25 @@ int main(int argc, char *argv[]){
 
 	for(int i = 0; i < 10000; i++){
 		L0 = X;
+		//Normal output
 		L1 = sgm(L0*W0);
 		L2 = sgm(L1*W1);
+		//Compute error on L2 perceptrons
 		mat L2_error = Y - L2;
+		//dE with respect to perceptrons on L2 and chain rule magic
 		mat L2_delta = L2_error % sgm_prime(L2);
+		//Compute error on L1 percentrons   
 		mat L1_error = L2_delta * trans(W1);
+		//dE with respect to perceptrons on L1 and chain rule magic
 		mat L1_delta = L1_error % sgm_prime(L1);
 
-		W1 = W1 + trans(L1)*L2_delta;
-    	W0 = W0 + trans(L0)*L1_delta;
+		/*
+		*   (L0) ---W0---> (L1) ---W1---> (L2) 
+		*
+		*/
+		
+		W1 = W1 + 5*trans(L1)*L2_delta;
+    	W0 = W0 + 5*trans(L0)*L1_delta;
 
 
 	}
