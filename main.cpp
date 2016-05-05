@@ -7,7 +7,7 @@
 #define HIDDEN_LAYERS 3
 #define HIDDEN_LAYER_SIZE 5
 #define INPUT_LAYER_SIZE 3
-#define LEARNING_COEFF 0.5
+#define LEARNING_COEFF 0.0001
 #define DESIRED_ERROR_PERCENT 0.1
 #define MAX_ITERATION_LEARN 55555
 
@@ -15,19 +15,19 @@ using namespace std;
 using namespace arma;
 
 mat actv(const mat& x){
-	return 1/(1+exp(x*-1));
-//	return x;
+	// return 1/(1+exp(x*-1));
+	return x;
 }
 
 mat actv_prime(mat& x){
-	return x % (1-x);
-	// return x.ones();
+	// return x % (1-x);
+	return x.ones();
 }
 
 int main(int argc, char *argv[]){
 	//Training Set
 	mat X =  { {0,0,1}, {1,1,1}, {1,0,1}, {0,1,1} };
-	mat _Y =  {0,1,1,0};
+	mat _Y =  {0,3,3,0};
 	mat Y = trans(_Y);
 	// Weight matrices
 	mat W0 = randu(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE);
@@ -55,6 +55,8 @@ int main(int argc, char *argv[]){
 		//compute output of entire network
 		for(int j = 1; j < Layers.size(); j++){
 			Layers[j] = actv(Layers[j-1] * Weights[j-1]);
+			// Layers[j].print();
+			// cout << "^ layer " << j << endl;
 		}
 
 		// compute error for network
