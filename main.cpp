@@ -6,14 +6,13 @@
 
 #define HIDDEN_LAYERS 3
 #define HIDDEN_LAYER_SIZE 5
-#define INPUT_LAYER_SIZE 2
+#define INPUT_LAYER_SIZE 3
+#define LEARNING_COEFF 0.5
+#define DESIRED_ERROR_PERCENT 0.5
+#define MAX_ITERATION_LEARN 55555
 
 using namespace std;
 using namespace arma;
-
-const double LEARNING_COEFF = 0.1;
-const double DESIRED_ERROR_PERCENT = 0.5;
-const int MAX_ITERATION_LEARN = 1000000;
 
 mat sgm(const mat& x){
 	return 1/(1+exp(x*-1));
@@ -25,8 +24,8 @@ mat sgm_prime(const mat& x){
 
 int main(int argc, char *argv[]){
 	//Training Set
-	mat X =  { {0,1}, {1,1}, {0,0}, {1,0} };
-	mat _Y =  {1,0,0,1};
+	mat X =  { {0,0,1}, {1,1,1}, {1,0,1}, {0,1,1} };
+	mat _Y =  {0,1,1,0};
 	mat Y = trans(_Y);
 	// Weight matrices
 	mat W0 = randu(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE);
@@ -60,7 +59,9 @@ int main(int argc, char *argv[]){
 		mat Ll = Layers[Layers.size() - 1];
 		mat Ll_error = Y - Ll;
 
+		//TODO: Don't use max! 
 		double err = as_scalar(max(Ll_error*100));
+		cout << "Current Error: " << err << "%" << endl;
 		if(err <= DESIRED_ERROR_PERCENT){
 			cout <<  "DESIRED_ERROR_PERCENT reached at : " << err << '%' << endl;
 			break;
