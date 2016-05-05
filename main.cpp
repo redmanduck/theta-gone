@@ -24,6 +24,7 @@ mat actv_prime(mat& x){
 	return x.ones();
 }
 
+
 int main(int argc, char *argv[]){
 	//Training Set
 	mat X =  { {0,0,1}, {1,1,1}, {1,0,1}, {0,1,1} };
