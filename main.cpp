@@ -4,13 +4,16 @@
 #include <string.h>
 #include <armadillo>
 
-#define LEARNING_COEFF 1
 #define HIDDEN_LAYERS 3
-#define HIDDEN_LAYER_SIZE 4
+#define HIDDEN_LAYER_SIZE 5
 #define INPUT_LAYER_SIZE 2
 
 using namespace std;
 using namespace arma;
+
+const double LEARNING_COEFF = 0.1;
+const double DESIRED_ERROR_PERCENT = 0.5;
+const int MAX_ITERATION_LEARN = 1000000;
 
 mat sgm(const mat& x){
 	return 1/(1+exp(x*-1));
@@ -45,8 +48,9 @@ int main(int argc, char *argv[]){
 	}
 	Layers.push_back(Ll);
 
+	cout << "Training .." << endl;
 	//Backpropagation
-	for(int i = 0; i < 10000; i++){
+	for(int i = 0; i < MAX_ITERATION_LEARN; i++){
 		//compute output of entire network
 		for(int j = 1; j < Layers.size(); j++){
 			Layers[j] = sgm(Layers[j-1] * Weights[j-1]);
@@ -55,6 +59,16 @@ int main(int argc, char *argv[]){
 		// compute error for network
 		mat Ll = Layers[Layers.size() - 1];
 		mat Ll_error = Y - Ll;
+
+		double err = as_scalar(max(Ll_error*100));
+		if(err <= DESIRED_ERROR_PERCENT){
+			cout <<  "DESIRED_ERROR_PERCENT reached at : " << err << '%' << endl;
+			break;
+		}
+		if(i == MAX_ITERATION_LEARN - 1){
+			cout << "MAX_ITERATION_LEARN reached at : " << err << '%' << endl;
+		}
+
 		mat Ll_delta = Ll_error % sgm_prime(Ll);
 		//update last weight 
 		int w_idx = Weights.size() - 1;
