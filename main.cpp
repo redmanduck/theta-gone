@@ -4,6 +4,11 @@
 #include <string.h>
 #include <armadillo>
 
+#define LEARNING_COEFF 3.5
+#define HIDDEN_LAYERS 2
+#define HIDDEN_LAYER_SIZE 4
+#define INPUT_LAYER_SIZE 2
+
 using namespace std;
 using namespace arma;
 
@@ -21,35 +26,52 @@ int main(int argc, char *argv[]){
 	mat _Y =  {1,0,0,1};
 	mat Y = trans(_Y);
 	// Weight matrices
-	mat W0 = randu(2,4);
-	mat W1 = randu(4,1);
+	mat W0 = randu(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE);
+	mat Wl = randu(HIDDEN_LAYER_SIZE,1);
 
-	mat L0, L1, L2;
-
-	for(int i = 0; i < 10000; i++){
-		L0 = X;
-		//Normal output
-		L1 = sgm(L0*W0);
-		L2 = sgm(L1*W1);
-		//Compute error on L2 perceptrons
-		mat L2_error = Y - L2;
-		//dE with respect to perceptrons on L2 and chain rule magic
-		mat L2_delta = L2_error % sgm_prime(L2);
-		//Compute error on L1 percentrons   
-		mat L1_error = L2_delta * trans(W1);
-		//dE with respect to perceptrons on L1 and chain rule magic
-		mat L1_delta = L1_error % sgm_prime(L1);
-
-		/*
-		*   (L0) ---W0---> (L1) ---W1---> (L2) 
-		*
-		*/
-		
-		W1 = W1 + 5*trans(L1)*L2_delta;
-    	W0 = W0 + 5*trans(L0)*L1_delta;
-
-
+	vector<mat> Weights = { W0 };
+	for(int l = 0; l < HIDDEN_LAYERS - 1; l++){
+		mat whdn = randu(HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE);
+		Weights.push_back(whdn);
 	}
-	L2.print();
+	Weights.push_back(Wl);
+
+	//Layer matrices
+	mat Ll;
+	vector<mat> Layers = { X };
+	for(int l = 0; l < HIDDEN_LAYERS; l++){
+		mat hdn = mat(HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE);
+		Layers.push_back(hdn);
+	}
+	Layers.push_back(Ll);
+
+	//Backpropagation
+	for(int i = 0; i < 10000; i++){
+		//compute output of entire network
+		for(int j = 1; j < Layers.size(); j++){
+			Layers[j] = sgm(Layers[j-1] * Weights[j-1]);
+		}
+
+		// compute error for network
+		mat Ll = Layers[Layers.size() - 1];
+		mat Ll_error = Y - Ll;
+		mat Ll_delta = Ll_error % sgm_prime(Ll);
+		//update last weight 
+		int w_idx = Weights.size() - 1;
+		Weights[w_idx] = Weights[w_idx] + LEARNING_COEFF*trans(Layers[w_idx])*Ll_delta;
+
+		mat Lprev_delta = Ll_delta;
+		// propagate backward for the rest of the network
+		for(int j = Weights.size() - 2; j >= 0; j--){
+			mat Lj_error = Lprev_delta * trans(Weights[j + 1]);
+			mat Lj_delta = Lj_error % sgm_prime(Layers[j + 1]);
+			//Update weight
+			Weights[j] = Weights[j] + LEARNING_COEFF*trans(Layers[j])*Lj_delta;
+			
+			Lprev_delta = Lj_delta;
+		}
+	}
+
+	Layers[Layers.size() - 1].print();
 
 }
