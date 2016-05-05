@@ -8,18 +8,20 @@
 #define HIDDEN_LAYER_SIZE 5
 #define INPUT_LAYER_SIZE 3
 #define LEARNING_COEFF 0.5
-#define DESIRED_ERROR_PERCENT 0.5
+#define DESIRED_ERROR_PERCENT 0.1
 #define MAX_ITERATION_LEARN 55555
 
 using namespace std;
 using namespace arma;
 
-mat sgm(const mat& x){
+mat actv(const mat& x){
 	return 1/(1+exp(x*-1));
+//	return x;
 }
 
-mat sgm_prime(const mat& x){
+mat actv_prime(mat& x){
 	return x % (1-x);
+	// return x.ones();
 }
 
 int main(int argc, char *argv[]){
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]){
 	for(int i = 0; i < MAX_ITERATION_LEARN; i++){
 		//compute output of entire network
 		for(int j = 1; j < Layers.size(); j++){
-			Layers[j] = sgm(Layers[j-1] * Weights[j-1]);
+			Layers[j] = actv(Layers[j-1] * Weights[j-1]);
 		}
 
 		// compute error for network
@@ -60,7 +62,7 @@ int main(int argc, char *argv[]){
 		mat Ll_error = Y - Ll;
 
 		//TODO: Don't use max! 
-		double err = as_scalar(max(Ll_error*100));
+		double err = abs(as_scalar(max(Ll_error*100)));
 		cout << "Current Error: " << err << "%" << endl;
 		if(err <= DESIRED_ERROR_PERCENT){
 			cout <<  "DESIRED_ERROR_PERCENT reached at : " << err << '%' << endl;
@@ -70,7 +72,7 @@ int main(int argc, char *argv[]){
 			cout << "MAX_ITERATION_LEARN reached at : " << err << '%' << endl;
 		}
 
-		mat Ll_delta = Ll_error % sgm_prime(Ll);
+		mat Ll_delta = Ll_error % actv_prime(Ll);
 		//update last weight 
 		int w_idx = Weights.size() - 1;
 		Weights[w_idx] = Weights[w_idx] + LEARNING_COEFF*trans(Layers[w_idx])*Ll_delta;
@@ -79,7 +81,7 @@ int main(int argc, char *argv[]){
 		// propagate backward for the rest of the network
 		for(int j = Weights.size() - 2; j >= 0; j--){
 			mat Lj_error = Lprev_delta * trans(Weights[j + 1]);
-			mat Lj_delta = Lj_error % sgm_prime(Layers[j + 1]);
+			mat Lj_delta = Lj_error % actv_prime(Layers[j + 1]);
 			//Update weight
 			Weights[j] = Weights[j] + LEARNING_COEFF*trans(Layers[j])*Lj_delta;
 
