@@ -4,8 +4,8 @@
 #include <string.h>
 #include <armadillo>
 
-#define LEARNING_COEFF 3.5
-#define HIDDEN_LAYERS 2
+#define LEARNING_COEFF 1
+#define HIDDEN_LAYERS 3
 #define HIDDEN_LAYER_SIZE 4
 #define INPUT_LAYER_SIZE 2
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 			mat Lj_delta = Lj_error % sgm_prime(Layers[j + 1]);
 			//Update weight
 			Weights[j] = Weights[j] + LEARNING_COEFF*trans(Layers[j])*Lj_delta;
-			
+
 			Lprev_delta = Lj_delta;
 		}
 	}
