@@ -4,12 +4,12 @@
 #include <string.h>
 #include <armadillo>
 
-#define HIDDEN_LAYERS 2
-#define HIDDEN_LAYER_SIZE 5
-#define INPUT_LAYER_SIZE 2
-#define LEARNING_COEFF 0.001
+#define HIDDEN_LAYERS 3
+#define HIDDEN_LAYER_SIZE 3
+#define INPUT_LAYER_SIZE 1
+#define LEARNING_COEFF 0.1
 #define DESIRED_ERROR_PERCENT 0.05
-#define MAX_ITERATION_LEARN 5000000
+#define MAX_ITERATION_LEARN 9900000
 
 using namespace std;
 using namespace arma;
@@ -42,8 +42,9 @@ int main(int argc, char *argv[]){
 
 
 	//Training Set
-	mat X =  { {1, 1}, {2, 1}, {5,1}, {6, 1}, {10,1}};
-	mat _Y =  {1/100.0, 4/100.0, 25/100.0, 36/100.0, 100/100.0};
+	mat _X =  { 1, 2 ,5, 6, 10, 3, 9, 8 };
+	mat X =trans(_X);
+	mat _Y =  {1/100.0, 4/100.0, 25/100.0, 36/100.0, 100/100.0, 9/100.0, 81/100.00, 64/100.00};
 
 
 	//seed(X, _Y, 10);
@@ -83,8 +84,8 @@ int main(int argc, char *argv[]){
 
 		//TODO: Don't use max! 
 		double err = abs(as_scalar(max(Ll_error*100)));
-		if(i % 20000 == 0){
-			cout << "Iteration " << i << " Error : " << endl;
+		if(i % 50000 == 0){
+			cout << "Iteration " << i << " Error : " << err << endl;
 			// Ll_error.print();
 		}
 		if(err <= DESIRED_ERROR_PERCENT){
@@ -121,7 +122,7 @@ int main(int argc, char *argv[]){
 
 	Layers[Layers.size() - 1].print();
 
-	Layers[0] = { {51, 1} };
+	Layers[0] = { 7 };
 	//Compute unseen
 	for(int j = 1; j < Layers.size(); j++){
 			Layers[j] = actv(Layers[j-1] * Weights[j-1]);
