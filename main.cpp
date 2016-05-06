@@ -4,12 +4,12 @@
 #include <string.h>
 #include <armadillo>
 
-#define HIDDEN_LAYERS 3
+#define HIDDEN_LAYERS 5
 #define HIDDEN_LAYER_SIZE 3
 #define INPUT_LAYER_SIZE 1
-#define LEARNING_COEFF 0.1
-#define DESIRED_ERROR_PERCENT 0.05
-#define MAX_ITERATION_LEARN 9900000
+#define LEARNING_COEFF 0.01
+#define DESIRED_ERROR_PERCENT 0.1
+#define BIGNUMBER 1000000
 
 using namespace std;
 using namespace arma;
@@ -40,19 +40,20 @@ void seed(mat& X, mat& _Y, int seed_size){
 
 int main(int argc, char *argv[]){
 
+	arma_rng::set_seed_random();
 
 	//Training Set
-	mat _X =  { 1, 2 ,5, 6, 10, 3, 9, 8 };
-	mat X =trans(_X);
-	mat _Y =  {1/100.0, 4/100.0, 25/100.0, 36/100.0, 100/100.0, 9/100.0, 81/100.00, 64/100.00};
+	mat _X =  { 1, 3 ,5, 7, 9, 10, 11, 15,16, 17, 18, 19, 20 };
+	mat X = trans(_X);
+	mat _Y =  pow(_X, 3) / pow(20,3);
 
 
 	//seed(X, _Y, 10);
 
 	mat Y = trans(_Y);
 	// Weight matrices
-	mat W0 = randu(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE);
-	mat Wl = randu(HIDDEN_LAYER_SIZE,1);
+	mat W0 = (randu(INPUT_LAYER_SIZE, HIDDEN_LAYER_SIZE)*2 - 1);
+	mat Wl = (randu(HIDDEN_LAYER_SIZE,1)*2 - 1);
 
 	vector<mat> Weights = { W0 };
 	for(int l = 0; l < HIDDEN_LAYERS - 1; l++){
@@ -72,7 +73,9 @@ int main(int argc, char *argv[]){
 
 	cout << "Training .." << endl;
 	//Backpropagation
-	for(int i = 0; i < MAX_ITERATION_LEARN; i++){
+	int i  = 0;
+	for(;;){
+
 		//compute output of entire network
 		for(int j = 1; j < Layers.size(); j++){
 			Layers[j] = actv(Layers[j-1] * Weights[j-1]);
@@ -82,24 +85,47 @@ int main(int argc, char *argv[]){
 		mat Ll = Layers[Layers.size() - 1];
 		mat Ll_error = Y - Ll;
 
+		mat Ll_error_percent = (Ll_error/Ll)*100;
+
 		//TODO: Don't use max! 
-		double err = abs(as_scalar(max(Ll_error*100)));
-		if(i % 50000 == 0){
-			cout << "Iteration " << i << " Error : " << err << endl;
-			// Ll_error.print();
+		int e_size = Ll_error_percent.n_elem;
+		double err = as_scalar(sum(abs(Ll_error_percent))/e_size);
+		if(i % 100000 == 0){
+			cout << "DESIRED_ERROR_PERCENT = " << DESIRED_ERROR_PERCENT << endl;
+			cout << "Iteration " << i << " Max(ERR) : " << err << " %" << endl;
+			cout << "Error: " << endl;
+			Ll_error_percent.print();
+
+			cout << "Expected: " << endl;
+			Y.print();
+
+			cout << "Actual: " << endl;
+			Ll.print();
+
+			cout << endl;
 		}
+
 		if(err <= DESIRED_ERROR_PERCENT){
-			cout <<  "DESIRED_ERROR_PERCENT reached at : ";
-			Ll_error.print();
+			cout <<  "DESIRED_ERROR_PERCENT reached at E = " << endl;;
+			cout << "Iteration " << i << " Max(ERR) : " << err << " %" << endl;
+			cout << "Error: " << endl;
+			Ll_error_percent.print();
+
+			cout << "Expected: " << endl;
+			Y.print();
+
+			cout << "Actual: " << endl;
+			Ll.print();
+
 			cout << endl;
 			break;
 		}
-		if(i == MAX_ITERATION_LEARN - 1){
-			cout << "MAX_ITERATION_LEARN reached at : ";
-			Ll_error.print();
-			cout << endl;
-			break;
-		}
+		// if(i == MAX_ITERATION_LEARN - 1){
+		// 	cout << "MAX_ITERATION_LEARN reached at : ";
+		// 	Ll_error.print();
+		// 	cout << endl;
+		// 	break;
+		// }
 
 		mat Ll_delta = Ll_error % actv_prime(Ll);
 		// cout << "Ll_delta : ";
@@ -118,17 +144,20 @@ int main(int argc, char *argv[]){
 
 			Lprev_delta = Lj_delta;
 		}
+		i++;
 	}
 
 	Layers[Layers.size() - 1].print();
 
-	Layers[0] = { 7 };
+	// mat _I = { 1,2,3,4,5,6,7,8 };
+	Layers[0] = trans(mat({ 1,2,3,4,5,6,7,8,9 ,10 }));
 	//Compute unseen
 	for(int j = 1; j < Layers.size(); j++){
 			Layers[j] = actv(Layers[j-1] * Weights[j-1]);
 	}
 	cout << "Prediction for X = ";
 	Layers[0].print();
-	Layers[Layers.size() - 1].print();
+	mat final = Layers[Layers.size() - 1]*1000;
+	final.print();
 
 }

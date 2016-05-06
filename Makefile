@@ -60,7 +60,7 @@
 MY_CFLAGS = -std=c++11
 
 # The linker options.
-MY_LIBS   = -larmadillo
+MY_LIBS   = -larmadillo -framework Accelerate
 
 # The pre-processor options used by the cpp (man cpp for more).
 CPPFLAGS  = 
@@ -88,8 +88,8 @@ HDREXTS = .h .H .hh .hpp .HPP .h++ .hxx .hp
 
 # The pre-processor and compiler options.
 # Users can override those variables from the command line.
-CFLAGS  = -g# -O2
-CXXFLAGS= -g# -O2 
+CFLAGS  = -g# -O3
+CXXFLAGS= -g# -O3 
 
 # The C program compiler.
 CC     = gcc
