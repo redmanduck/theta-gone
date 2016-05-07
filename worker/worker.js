@@ -3,9 +3,10 @@ importScripts('../node_modules/linear-algebra/dist/linear-algebra.min.js')
 //global
 var Vector = linearAlgebra().Vector,
 	Matrix = linearAlgebra().Matrix,
-	HIDDEN_LAYER_SIZE = 4,
-	HIDDEN_LAYER = 2,
-	LEARNING_COEFF = 0.001;
+	HIDDEN_LAYER_SIZE = 8,
+	HIDDEN_LAYER = 3,
+	LEARNING_COEFF = 1,
+	MOMENTUM = 0.2;
 
 Matrix.prototype.cmul = function(m2) {
 	var data = this.data,
@@ -58,8 +59,6 @@ var Y = X.eleMap(function(v) { return v*v*v });
 var Win = Matrix.zero(X.cols, HIDDEN_LAYER_SIZE).eleMap(frand);
 var Wout = Matrix.zero(HIDDEN_LAYER_SIZE, Y.cols).eleMap(frand);
 
-console.log(Win.data.toString());
-
 //weights array with w hidden
 var Weights = [ Win ];
 for (var i = 0; i < HIDDEN_LAYER - 1; i++) {
@@ -76,8 +75,17 @@ for (var i = 0; i < HIDDEN_LAYER; i++) {
 };
 Layers.push(new Matrix([]));
 
+//momentum
+var	Wmoment = [],
+	Wlmoment = [];
+
+for (var i = Weights.length - 1; i >= 0; i--) {
+	Wlmoment.push(Matrix.zero(Weights[i].rows, Weights[i].cols));
+};
+
+//other vars
 var Lout, Lout_error, Lout_error_percent, err, Lout_delta, 
-	w_idx, 
+	w_idx, Lj_deltaw, Lout_deltaw,
 	Lj_error, Lj_delta, Lprev_delta;
 var i = 0, 
 	j = 0;
@@ -121,18 +129,29 @@ while(true) {
 
 	//output layer weight update
 	w_idx = Weights.length - 1;
-	Weights[w_idx] = Weights[w_idx].minus(Layers[w_idx].trans().cmul(Lout_delta).mulEach(LEARNING_COEFF));
+	Lout_deltaw = Layers[w_idx].trans().cmul(Lout_delta);
+	Weights[w_idx] = Weights[w_idx].minus(Lout_deltaw.mulEach(LEARNING_COEFF)).plus(Wlmoment.shift().mulEach(MOMENTUM));
+
+	Wmoment.push(Lout_deltaw);
 
 	Lprev_delta = Lout_delta;
+
 	//hidden layer weight update
 	for (j = Weights.length - 2; j >= 0; --j) {
 		Lj_error = Lprev_delta.cmul(Weights[j+1].trans());
 		Lj_delta = Lj_error.mul(Activator.prime(Layers[j+1]));
+		Lj_deltaw = Layers[j].trans().cmul(Lj_delta);
 
 		//update
-		Weights[j] = Weights[j].minus(Layers[j].trans().cmul(Lj_delta).mulEach(LEARNING_COEFF));
+		Weights[j] = Weights[j].minus(Lj_deltaw.mulEach(LEARNING_COEFF)).plus(Wlmoment.shift().mulEach(MOMENTUM));
 		Lprev_delta = Lj_delta;
+
+		Wmoment.push(Lj_deltaw);
 	};
+
+	//save last momentum
+	Wlmoment = Wmoment;
+	Wmoment = [];
 
 	//increment
 	i++;
