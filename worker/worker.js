@@ -4,9 +4,9 @@ importScripts('../node_modules/linear-algebra/dist/linear-algebra.min.js')
 var Vector = linearAlgebra().Vector,
 	Matrix = linearAlgebra().Matrix,
 	HIDDEN_LAYER_SIZE = 8,
-	HIDDEN_LAYER = 3,
+	HIDDEN_LAYER = 2,
 	LEARNING_COEFF = 1,
-	MOMENTUM = 0.2;
+	MOMENTUM = 0.1;
 
 Matrix.prototype.cmul = function(m2) {
 	var data = this.data,
@@ -108,7 +108,7 @@ while(true) {
 
 
 	//print
-	if(i % 100000 == 0) {
+	if(i % 1000 == 0) {
 
 		//create html text
 		var lis = '';
@@ -118,7 +118,7 @@ while(true) {
 
 		//send back some response
 		postMessage({
-			err: err,
+			err: err.toFixed(10),
 			iter: i,
 			result: lis
 		});
